@@ -55,8 +55,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PSTR, _In_ INT cmdShow)
 {
+	FILE* file;
+	AllocConsole();
+	freopen_s(&file, "CONOUT$", "w", stdout);
+
+	SetConsoleTitle("CS2 ESP");
+
 	Memory mem{ "cs2.exe" };
 	auto client = mem.GetModuleAddress("client.dll");
+
+	if (client == 0)
+	{
+		std::cout << "Open Counter-Strike 2 before starting the cheat" << std::endl;
+		Sleep(5000);
+		fclose(file);
+		return 1;
+	}
+
+	std::cout << "Got client.dll address: 0x" << client << std::endl;
 
 	WNDCLASSEXW wc{ };
 	wc.cbSize = sizeof(WNDCLASSEXW);
@@ -186,7 +202,7 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PSTR, _In_
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		for (int i = 1; i < 32; ++i)
+		for (int i = 1; i < 64; ++i)
 		{
 			uintptr_t listEntry = mem.Read<uintptr_t>(entityList + (8 * (i & 0x7FFF) >> 9) + 16);
 
@@ -269,6 +285,17 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PSTR, _In_
 					255
 				);
 
+				Render::Rect(
+					screenHead.x - (width / 2 + 10),
+					screenHead.y + (height * (100 - health) / 100),
+					2,
+					height - (height * (100 - health) / 100),
+					healthColor,
+					1.5 / distance,
+					true,
+					255
+				);
+
 				Render::Text(screenPos.x - width / 2, screenPos.y, name.c_str(), skeleton);
 
 				if (spotted) //TODO: This will render whenever a player is spotted by a teammate on the radar. It's checking bSpotted instead of bSpottedByMask. idk why. Fix
@@ -336,6 +363,8 @@ INT WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ PSTR, _In_
 
 	DestroyWindow(overlay);
 	UnregisterClassW(wc.lpszClassName, wc.hInstance);
+
+	fclose(file);
 
 	return 0;
 }
