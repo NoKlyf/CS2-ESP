@@ -124,7 +124,7 @@ namespace hj
 		CLIENT_ID clientID = { 0 };
 		DWORD size = sizeof(SYSTEM_HANDLE_INFORMATION);
 
-		hInfo = (SYSTEM_HANDLE_INFORMATION*) new byte[size];
+		hInfo = (SYSTEM_HANDLE_INFORMATION*)new byte[size];
 
 		ZeroMemory(hInfo, size);
 
@@ -137,7 +137,7 @@ namespace hj
 
 			try
 			{
-				hInfo = (PSYSTEM_HANDLE_INFORMATION) new byte[size];
+				hInfo = (PSYSTEM_HANDLE_INFORMATION)new byte[size];
 			}
 			catch (std::bad_alloc)
 			{
@@ -213,11 +213,23 @@ public:
                 processId = entry.th32ProcessID;
 				processHandle = hj::HijackExistingHandle(processId);
 
+				HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
 				if (!processHandle)
 				{
 					processHandle = OpenProcess(PROCESS_ALL_ACCESS, 0, processId);
-					MessageBox(NULL, "Failed to Hijack Handle", "CS2 ESP", MB_OK);
+					std::cout << "VAC Status: ";
+					SetConsoleTextAttribute(hConsole, 12);
+					std::cout << "Insecure" << std::endl;
+					Beep(523, 500);
+					Beep(523, 500);
 				}
+
+				std::cout << "VAC Status: ";
+				SetConsoleTextAttribute(hConsole, 10);
+				std::cout << "Bypassed" << std::endl;
+				SetConsoleTextAttribute(hConsole, 15);
+				Beep(523, 500);
 
                 break;
             }
@@ -225,6 +237,11 @@ public:
 
         if (snapShot)
             ::CloseHandle(snapShot);
+
+		if (processHandle == 0)
+			return;
+
+		std::cout << "Got HANDLE to Counter-Strike 2: " << processHandle << std::endl;
     }
 
     ~Memory()
